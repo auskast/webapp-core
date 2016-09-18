@@ -1,3 +1,5 @@
+import * as redux from 'redux';
+
 import createStore from '../../src/lib/createStore';
 
 const devToolsExtensionMock = sinon.stub().returns((f) => f);
@@ -7,8 +9,16 @@ describe('lib/createStore', () => {
     global.__DEVELOPMENT__ = false;
   });
 
+  beforeEach(() => {
+    sinon.spy(redux, 'compose');
+  });
+
   after(() => {
     delete global.__DEVELOPMENT__;
+  });
+
+  afterEach(() => {
+    redux.compose.restore();
   });
 
   it('returns a store', () => {
@@ -30,6 +40,11 @@ describe('lib/createStore', () => {
 
       after(() => {
         delete global.__CLIENT__;
+      });
+
+      it('uses compose()', () => {
+        createStore();
+        expect(redux.compose).to.have.been.called;
       });
 
       context('with devtools extension', () => {
@@ -63,6 +78,11 @@ describe('lib/createStore', () => {
   context('in production environment', () => {
     before(() => {
       global.__DEVELOPMENT__ = false;
+    });
+
+    it('does not use compose()', () => {
+      createStore();
+      expect(redux.compose).not.to.have.been.called;
     });
   });
 });
